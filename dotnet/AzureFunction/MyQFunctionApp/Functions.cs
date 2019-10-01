@@ -55,7 +55,7 @@ namespace MyQFunctionApp
                     var op = body.Value<string>(@"op");
                     if (op.Equals(@"open", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (bool.Parse(Environment.GetEnvironmentVariable(@"CanOpen")))
+                        if (bool.Parse(Environment.GetEnvironmentVariable(@"CanOpen") ?? "false"))  //default secure
                         {
                             var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
                             await MyQClient.MyQClient.Instance.OpenDoorAsync(targetDoor);
