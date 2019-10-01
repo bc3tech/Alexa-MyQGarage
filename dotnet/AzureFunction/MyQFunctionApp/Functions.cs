@@ -22,13 +22,29 @@ namespace MyQFunctionApp
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            var usernameUri = req.Headers[@"x-keyvaultUsernameUri"].ToString();
-            var pwdUri = req.Headers[@"x-keyvaultPwdUri"].ToString();
-
             var kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback), _client);
 
+            var usernameUri = req.Headers[@"x-keyvaultUsernameUri"].ToString();
             var username = (await kvClient.GetSecretAsync(usernameUri)).Value;
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                log.LogError($@"No username found at {usernameUri}");
+                return new ObjectResult(@"No username found at keyvault uri given for username")
+                {
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+            }
+
+            var pwdUri = req.Headers[@"x-keyvaultPwdUri"].ToString();
             var pwd = (await kvClient.GetSecretAsync(pwdUri)).Value;
+            if (string.IsNullOrWhiteSpace(pwd))
+            {
+                log.LogError($@"No password found at {pwdUri}");
+                return new ObjectResult(@"No password found at keyvault uri given for username")
+                {
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+            }
 
             try
             {
@@ -43,9 +59,11 @@ namespace MyQFunctionApp
                         {
                             var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
                             await MyQClient.MyQClient.Instance.OpenDoorAsync(targetDoor);
+                            log.LogInformation(@"Door open request sent.");
                         }
                         else
                         {
+                            log.LogWarning(@"Open request denied by application setting");
                             return new ObjectResult(@"Opening is disabled. Set the 'CanOpen' application setting to 'true' to enable.")
                             {
                                 StatusCode = StatusCodes.Status401Unauthorized
@@ -56,6 +74,7 @@ namespace MyQFunctionApp
                     {
                         var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
                         await MyQClient.MyQClient.Instance.CloseDoorAsync(targetDoor);
+                        log.LogInformation(@"Door close request sent.");
                     }
                 }
 
