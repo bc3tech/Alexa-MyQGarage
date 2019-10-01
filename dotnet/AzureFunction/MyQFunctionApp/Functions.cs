@@ -24,23 +24,51 @@ namespace MyQFunctionApp
         {
             var kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback), _client);
 
+            var bodyObj = JObject.Parse(await req.ReadAsStringAsync());
+
             var usernameUri = req.Headers[@"x-keyvaultUsernameUri"].ToString();
+            if (string.IsNullOrWhiteSpace(usernameUri))
+            {
+                usernameUri = bodyObj.Value<string>(@"keyvaultUsernameUri");
+            }
+            if (string.IsNullOrWhiteSpace(usernameUri))
+            {
+                log.LogError($@"No username URI given");
+                return new ObjectResult(@"No username KeyVault URI given")
+                {
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+            }
+
             var username = (await kvClient.GetSecretAsync(usernameUri)).Value;
             if (string.IsNullOrWhiteSpace(username))
             {
                 log.LogError($@"No username found at {usernameUri}");
-                return new ObjectResult(@"No username found at keyvault uri given for username")
+                return new ObjectResult(@"No username found at given KeyVault URI")
                 {
                     StatusCode = StatusCodes.Status400BadRequest
                 };
             }
 
             var pwdUri = req.Headers[@"x-keyvaultPwdUri"].ToString();
+            if (string.IsNullOrWhiteSpace(pwdUri))
+            {
+                pwdUri = bodyObj.Value<string>(@"keyvaultPwdUri");
+            }
+            if (string.IsNullOrWhiteSpace(pwdUri))
+            {
+                log.LogError($@"No password URI given");
+                return new ObjectResult(@"No password KeyVault URI given")
+                {
+                    StatusCode = StatusCodes.Status400BadRequest
+                };
+            }
+
             var pwd = (await kvClient.GetSecretAsync(pwdUri)).Value;
             if (string.IsNullOrWhiteSpace(pwd))
             {
                 log.LogError($@"No password found at {pwdUri}");
-                return new ObjectResult(@"No password found at keyvault uri given for username")
+                return new ObjectResult(@"No password found at given KeyVault URI")
                 {
                     StatusCode = StatusCodes.Status400BadRequest
                 };
@@ -51,8 +79,7 @@ namespace MyQFunctionApp
                 var loginResult = await MyQClient.MyQClient.Instance.LoginAsync(username, pwd);
                 if (!string.IsNullOrWhiteSpace(loginResult))
                 {
-                    var body = JObject.Parse(await req.ReadAsStringAsync());
-                    var op = body.Value<string>(@"op");
+                    var op = bodyObj.Value<string>(@"op");
                     if (op.Equals(@"open", StringComparison.OrdinalIgnoreCase))
                     {
                         if (bool.Parse(Environment.GetEnvironmentVariable(@"CanOpen") ?? "false"))  //default secure
