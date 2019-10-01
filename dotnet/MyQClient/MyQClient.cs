@@ -1,14 +1,11 @@
-﻿using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace MyQClient
 {
@@ -26,7 +23,7 @@ namespace MyQClient
 
         private string _securityToken;
 
-        private async Task<string> GetTokenAsync()
+        private async Task<string> GetTokenAsync(string username = null, string password = null)
         {
             if (!string.IsNullOrWhiteSpace(_securityToken)) return _securityToken;
 
@@ -36,8 +33,8 @@ namespace MyQClient
                 {
                     var payload = JObject.FromObject(new
                     {
-                        username = Environment.GetEnvironmentVariable(@"MyQUsername"),
-                        password = Environment.GetEnvironmentVariable(@"MyQPassword")
+                        username = username ?? Environment.GetEnvironmentVariable(@"MyQUsername"),
+                        password = password ?? Environment.GetEnvironmentVariable(@"MyQPassword")
                     });
 
                     var loginResponse = await _httpClient.PostAsync(Environment.GetEnvironmentVariable(@"LoginEndpoint"),
@@ -89,7 +86,7 @@ namespace MyQClient
             return jObject;
         }
 
-        public Task<string> LoginAsync() => GetTokenAsync();
+        public Task<string> LoginAsync(string username = null, string password = null) => GetTokenAsync(username, password);
 
         public async Task<string> GetSystemDetailAsync()
         {
