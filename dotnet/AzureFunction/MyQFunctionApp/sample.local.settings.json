@@ -10,8 +10,5 @@
     "LoginEndpoint": "api/v4/User/Validate",
     "GetSystemDetailEndpoint": "api/v4/UserDeviceDetails/Get",
     "SetStateEndpoint": "api/v4/DeviceAttribute/PutDeviceAttribute",
-
-    "MyQUsername": "<your username>",
-    "MyQPassword": "<your password>"
   }
 }
