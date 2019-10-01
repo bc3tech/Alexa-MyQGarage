@@ -1,10 +1,17 @@
 # Azure Function to control Chamberlain MyQ-enabled garage doors
 ## Setup
 1. Copy `sample.local.settings.json` -> `local.settings.json`  
-2. Publish `MyQFunctionApp.csproj` -> a new Azure Function app
-3. Create an Azure KeyVault instance
+1. Publish `MyQFunctionApp.csproj` -> a new Azure Function app
+1. Copy the application settings from `local.settings.json` to the Function App in Azure, specifically
+    * MyQApplicationId
+    * MyQCulture
+    * MyQBaseAddress
+    * LoginEndpoint
+    * GetSystemDetailEndpoint
+    * SetStateEndpoint
+4. Create an Azure KeyVault instance
 4. Enable Managed Identity on the new Azure Function app, and grant it access to the new Azure KeyVault as per [this blog post by Functions PM, Jeff Hollan](https://medium.com/statuscode/getting-key-vault-secrets-in-azure-functions-37620fd20a0b)
-5. Add secrets to KeyVault containing your MyQ username & password
+4. Add secrets to KeyVault containing your MyQ username & password
 
 ## Usage
 To use the new Azure Function, make a call to it with the URIs to your username and password secrets contained in either:
