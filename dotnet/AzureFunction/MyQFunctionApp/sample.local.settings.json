@@ -1,0 +1,17 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "MyQApplicationId": "JVM/G9Nwih5BwKgNCjLxiFUQxQijAebyyg8QUHr7JOrP+tuPb8iHfRHKwTmDzHOu",
+    "MyQCulture": "en",
+
+    "MyQBaseAddress": "https://myqexternal.myqdevice.com",
+    "LoginEndpoint": "api/v4/User/Validate",
+    "GetSystemDetailEndpoint": "api/v4/UserDeviceDetails/Get",
+    "SetStateEndpoint": "api/v4/DeviceAttribute/PutDeviceAttribute",
+
+    "MyQUsername": "<your username>",
+    "MyQPassword": "<your password>"
+  }
+}
