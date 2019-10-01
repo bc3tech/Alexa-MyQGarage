@@ -70,7 +70,7 @@ namespace MyQFunctionApp
                             };
                         }
                     }
-                    else if (op.Equals(@"close", StringComparison.OrdinalIgnoreCase))
+                    else if (op.StartsWith(@"close", StringComparison.OrdinalIgnoreCase))
                     {
                         var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
                         await MyQClient.MyQClient.Instance.CloseDoorAsync(targetDoor);
