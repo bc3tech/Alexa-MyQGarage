@@ -74,43 +74,36 @@ namespace MyQFunctionApp
                 };
             }
 
-            try
+            var loginResult = await MyQClient.MyQClient.Instance.LoginAsync(username, pwd);
+            if (!string.IsNullOrWhiteSpace(loginResult))
             {
-                var loginResult = await MyQClient.MyQClient.Instance.LoginAsync(username, pwd);
-                if (!string.IsNullOrWhiteSpace(loginResult))
+                var op = bodyObj.Value<string>(@"op");
+                if (op.Equals(@"open", StringComparison.OrdinalIgnoreCase))
                 {
-                    var op = bodyObj.Value<string>(@"op");
-                    if (op.Equals(@"open", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (bool.Parse(Environment.GetEnvironmentVariable(@"CanOpen") ?? "false"))  //default secure
-                        {
-                            var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
-                            await MyQClient.MyQClient.Instance.OpenDoorAsync(targetDoor);
-                            log.LogInformation(@"Door open request sent.");
-                        }
-                        else
-                        {
-                            log.LogWarning(@"Open request denied by application setting");
-                            return new ObjectResult(@"Opening is disabled. Set the 'CanOpen' application setting to 'true' to enable.")
-                            {
-                                StatusCode = StatusCodes.Status401Unauthorized
-                            };
-                        }
-                    }
-                    else if (op.StartsWith(@"close", StringComparison.OrdinalIgnoreCase))
+                    if (bool.Parse(Environment.GetEnvironmentVariable(@"CanOpen") ?? "false"))  //default secure
                     {
                         var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
-                        await MyQClient.MyQClient.Instance.CloseDoorAsync(targetDoor);
-                        log.LogInformation(@"Door close request sent.");
+                        await MyQClient.MyQClient.Instance.OpenDoorAsync(targetDoor);
+                        log.LogInformation(@"Door open request sent.");
+                    }
+                    else
+                    {
+                        log.LogWarning(@"Open request denied by application setting");
+                        return new ObjectResult(@"Opening is disabled. Set the 'CanOpen' application setting to 'true' to enable.")
+                        {
+                            StatusCode = StatusCodes.Status401Unauthorized
+                        };
                     }
                 }
+                else if (op.StartsWith(@"close", StringComparison.OrdinalIgnoreCase))
+                {
+                    var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
+                    await MyQClient.MyQClient.Instance.CloseDoorAsync(targetDoor);
+                    log.LogInformation(@"Door close request sent.");
+                }
+            }
 
-                return new AcceptedResult();
-            }
-            catch
-            {
-                return new BadRequestResult();
-            }
+            return new AcceptedResult();
         }
     }
 }
