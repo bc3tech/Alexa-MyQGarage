@@ -1,3 +1,7 @@
+using System;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.KeyVault;
@@ -6,10 +10,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace MyQFunctionApp
 {
@@ -39,6 +39,7 @@ namespace MyQFunctionApp
                     StatusCode = StatusCodes.Status400BadRequest
                 };
             }
+            //log.LogTrace($@"Vault Username URI: {usernameUri}");
 
             var username = (await kvClient.GetSecretAsync(usernameUri)).Value;
             if (string.IsNullOrWhiteSpace(username))
@@ -49,6 +50,7 @@ namespace MyQFunctionApp
                     StatusCode = StatusCodes.Status400BadRequest
                 };
             }
+            log.LogTrace($@"Got username from vault successfully.");
 
             var pwdUri = req.Headers[@"x-keyvaultPwdUri"].ToString();
             if (string.IsNullOrWhiteSpace(pwdUri))
@@ -63,6 +65,7 @@ namespace MyQFunctionApp
                     StatusCode = StatusCodes.Status400BadRequest
                 };
             }
+            //log.LogTrace($@"Vault pwd URI: {pwdUri}");
 
             var pwd = (await kvClient.GetSecretAsync(pwdUri)).Value;
             if (string.IsNullOrWhiteSpace(pwd))
@@ -73,6 +76,7 @@ namespace MyQFunctionApp
                     StatusCode = StatusCodes.Status400BadRequest
                 };
             }
+            log.LogTrace($@"Got pwd from vault successfully.");
 
             var loginResult = await MyQClient.MyQClient.Instance.LoginAsync(username, pwd);
             if (!string.IsNullOrWhiteSpace(loginResult))
@@ -84,7 +88,7 @@ namespace MyQFunctionApp
                     {
                         var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
                         await MyQClient.MyQClient.Instance.OpenDoorAsync(targetDoor);
-                        log.LogInformation(@"Door open request sent.");
+                        log.LogInformation(@"Door open request sent to MyQ.");
                     }
                     else
                     {
@@ -99,8 +103,16 @@ namespace MyQFunctionApp
                 {
                     var targetDoor = (await MyQClient.MyQClient.Instance.GetGarageDoorsAsync()).First();
                     await MyQClient.MyQClient.Instance.CloseDoorAsync(targetDoor);
-                    log.LogInformation(@"Door close request sent.");
+                    log.LogInformation(@"Door close request sent to MyQ.");
                 }
+            }
+            else
+            {
+                log.LogError($@"Login failed: {loginResult}");
+                return new ObjectResult(loginResult)
+                {
+                    StatusCode = StatusCodes.Status401Unauthorized
+                };
             }
 
             return new AcceptedResult();
