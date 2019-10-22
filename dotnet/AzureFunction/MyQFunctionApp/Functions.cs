@@ -105,6 +105,11 @@ namespace MyQFunctionApp
                     await MyQClient.MyQClient.Instance.CloseDoorAsync(targetDoor);
                     log.LogInformation(@"Door close request sent to MyQ.");
                 }
+                else
+                {
+                    log.LogError($@"Unrecognized operation '{op}'");
+                    return new BadRequestObjectResult($@"Unrecognized operation '{op}'");
+                }
             }
             else
             {
